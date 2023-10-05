@@ -3,6 +3,7 @@ using E_Commerce.Data;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Core.Interfaces;
 using Infrastructure.Data;
+using E_Commerce.Helper;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,7 +14,9 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<StoreContext>(x => x.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-builder.Services.AddScoped<IProductRepository,ProductRepository>();    
+builder.Services.AddScoped<IProductRepository,ProductRepository>();
+builder.Services.AddAutoMapper(typeof(MappingProfiles));
+builder.Services.AddScoped(typeof(IGenericRepository<>),(typeof(GenericRepository<>)));
 
 var app = builder.Build();
 using (var scope = app.Services.CreateScope())
@@ -43,7 +46,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
-
+app.UseStaticFiles();
 app.MapControllers();
 
 app.Run();
