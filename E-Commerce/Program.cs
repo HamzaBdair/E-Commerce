@@ -4,6 +4,11 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Core.Interfaces;
 using Infrastructure.Data;
 using E_Commerce.Helper;
+using E_Commerce.Middleware;
+using Microsoft.AspNetCore.Mvc;
+using E_Commerce.Errors;
+using Microsoft.OpenApi.Models;
+using E_Commerce.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,9 +19,12 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<StoreContext>(x => x.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-builder.Services.AddScoped<IProductRepository,ProductRepository>();
+builder.Services.AddApplicationServices();
+builder.Services.AddSwaggerDocummentation();
 builder.Services.AddAutoMapper(typeof(MappingProfiles));
-builder.Services.AddScoped(typeof(IGenericRepository<>),(typeof(GenericRepository<>)));
+
+
+
 
 var app = builder.Build();
 using (var scope = app.Services.CreateScope())
@@ -37,14 +45,11 @@ using (var scope = app.Services.CreateScope())
 }
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-
+app.UseMiddleware<ExceptionMiddleware>();
+app.UseStatusCodePagesWithReExecute("/errors/{0}");
 app.UseHttpsRedirection();
 
+app.UseSwaggerDocumentation();
 app.UseAuthorization();
 app.UseStaticFiles();
 app.MapControllers();

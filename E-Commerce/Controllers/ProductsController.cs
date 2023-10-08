@@ -4,14 +4,13 @@ using Core.Specifications;
 using E_Commerce.Data;
 using E_Commerce.DTOs;
 using E_Commerce.Entities;
+using E_Commerce.Errors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace E_Commerce.Controllers
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class ProductsController : ControllerBase
+    public class ProductsController : BaseApiController
     {
         private readonly IMapper _mapper;
 
@@ -37,10 +36,13 @@ namespace E_Commerce.Controllers
         }
 
         [HttpGet("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
         public async Task<ActionResult<ProductToReturnDTO>> GetProduct(int id)
         {
             var spec = new ProductsWithTypesAndBrandsSpesification(id);
             var product=await _productRepo.GetEntityWithSpec(spec);
+            if (product == null)return NotFound(new ApiResponse(404));
             return _mapper.Map<Product, ProductToReturnDTO>(product);
         }
         [HttpGet("brand")]
